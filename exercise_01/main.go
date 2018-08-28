@@ -7,9 +7,16 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 )
 
+var problemFile string
+var timer int
+
 func main() {
+
+	problemFile = *flag.String("filename", "problems.csv", "File containing the list of problems")
+	timer = *flag.Int("timer", 30, "Number of seconds before running out of time")
 
 	problems, err := readProblems()
 	if err != nil {
@@ -25,15 +32,28 @@ func runQuiz(problems []*Problem) {
 	count := len(problems)
 	correct := 0
 	incorrect := 0
+
+	timer := time.NewTimer(time.Second * time.Duration(timer))
+	answerCh := make(chan string)
+
+loop:
 	for _, p := range problems {
 		fmt.Println(p.Question)
-		scanner.Scan()
-		answer := scanner.Text()
+		go func() {
+			scanner.Scan()
+			answerCh <- scanner.Text()
+		}()
 
-		if answer == p.Answer {
-			correct++
-		} else {
-			incorrect++
+		select {
+		case <-timer.C:
+			fmt.Println("Times up!")
+			break loop
+		case a := <-answerCh:
+			if a == p.Answer {
+				correct++
+			} else {
+				incorrect++
+			}
 		}
 	}
 
@@ -41,9 +61,7 @@ func runQuiz(problems []*Problem) {
 }
 
 func readProblems() ([]*Problem, error) {
-	filename := flag.String("filename", "problems.csv", "File containing the list of problems")
-
-	file, err := os.Open(*filename)
+	file, err := os.Open(problemFile)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to read the problems file")
 	}
