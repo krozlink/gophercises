@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	parser "github.com/krozlink/gophercises/exercise_04"
+	link "github.com/krozlink/gophercises/exercise_04"
 	"strings"
 )
 
@@ -14,7 +14,7 @@ func main() {
 	</body>
 	</html>
 	`)
-	links := parser.ParseLinks(r)
+	links, _ := link.Parse(r)
 
 	for _, l := range links {
 		fmt.Printf("Link: %v\nText: %v\n\n", l.Href, l.Text)

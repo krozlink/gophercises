@@ -1,15 +1,15 @@
-package parser
+package link
 
 import (
 	"golang.org/x/net/html"
 	"io"
 )
 
-// ParseLinks returns a slice of Links parsed from the supplied Reader
-func ParseLinks(r io.Reader) []Link {
+// Parse returns a slice of Links parsed from the supplied Reader
+func Parse(r io.Reader) ([]Link, error) {
 	parent, err := html.Parse(r)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	var result []Link
@@ -35,7 +35,7 @@ func ParseLinks(r io.Reader) []Link {
 	}
 
 	parser(parent)
-	return result
+	return result, nil
 }
 
 func parseText(n *html.Node) string {
@@ -51,6 +51,7 @@ func parseText(n *html.Node) string {
 	return text
 }
 
+// Link represents a link in an HTML document (<a href="">)
 type Link struct {
 	Href string
 	Text string
