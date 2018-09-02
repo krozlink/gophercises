@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	parser "github.com/krozlink/gophercises/exercise_04"
 	"strings"
 )
@@ -8,12 +9,14 @@ import (
 func main() {
 	r := strings.NewReader(`
 	<html>
-		<head>
-			<title>Test</title>
-		</head>
-		<body>
-			<a href="test">Link text</a>
-		</body>
+	<body>
+	  <a href="/dog-cat">dog cat <!-- commented text SHOULD NOT be included! --></a>
+	</body>
+	</html>
 	`)
-	parser.ParseLinks(r)
+	links := parser.ParseLinks(r)
+
+	for _, l := range links {
+		fmt.Printf("Link: %v\nText: %v\n\n", l.Href, l.Text)
+	}
 }

@@ -1,12 +1,11 @@
 package parser
 
 import (
-	"fmt"
 	"golang.org/x/net/html"
 	"io"
-	// "io/ioutil"
 )
 
+// ParseLinks returns a slice of Links parsed from the supplied Reader
 func ParseLinks(r io.Reader) []Link {
 	parent, err := html.Parse(r)
 	if err != nil {
@@ -14,28 +13,42 @@ func ParseLinks(r io.Reader) []Link {
 	}
 
 	var result []Link
+	var parser func(*html.Node)
 
-	var parser func(*html.Node, int)
-	parser = func(n *html.Node, depth int) {
+	parser = func(n *html.Node) {
 		if n.Type == html.ElementNode && n.Data == "a" {
-			fmt.Printf("%v\n", n.Data)
-			for _, a := range n.Attr {
-				fmt.Printf("  %v = %v\n", a.Key, a.Val)
+			l := Link{
+				Text: parseText(n),
 			}
-		}
 
-		if n.Type == html.TextNode {
-			fmt.Printf("%v\n", n.Data)
+			for _, a := range n.Attr {
+				if a.Key == "href" {
+					l.Href = a.Val
+				}
+			}
+			result = append(result, l)
 		}
 
 		for c := n.FirstChild; c != nil; c = c.NextSibling {
-			parser(c, depth+1)
+			parser(c)
 		}
 	}
 
-	parser(parent, 0)
-
+	parser(parent)
 	return result
+}
+
+func parseText(n *html.Node) string {
+	var text string
+	if n.Type == html.TextNode {
+		text += n.Data
+	}
+
+	for c := n.FirstChild; c != nil; c = c.NextSibling {
+		text += parseText(c)
+	}
+
+	return text
 }
 
 type Link struct {
